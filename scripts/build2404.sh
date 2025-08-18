@@ -47,7 +47,11 @@ runcmd:
   - apt install -y qemu-guest-agent net-tools
   - systemctl start qemu-guest-agent
   - apt-get install -y fail2ban curl gnupg2 apt-transport-https build-essential libpam-dev
-
+  
+  # Install SSL
+  - curl http://pki.labnat.local/certs/root-01-cert.pem -o /usr/local/share/ca-certificates/root-ca.crt
+  - update-ca-certificates
+  
   # Duo PAM install
   - curl -sSL https://dl.duosecurity.com/duo_unix-latest.tar.gz -o /tmp/duo.tar.gz
   - tar -xzf /tmp/duo.tar.gz -C /tmp/
