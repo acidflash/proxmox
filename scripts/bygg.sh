@@ -121,35 +121,68 @@ ensure_snippet_2404() {
 
   cat << 'EOF' > "${SNIPPET_PATH}"
 #cloud-config
+package_update: true
+package_upgrade: true
+package_reboot_if_required: false
+
+packages:
+  - qemu-guest-agent
+  - fail2ban
+  - curl
+  - gnupg2
+  - apt-transport-https
+  - build-essential
+  - libpam-dev
+
 write_files:
   - path: /etc/sysctl.d/10-disable-ipv6.conf
-    permissions: 0644
-    owner: root
+    owner: root:root
+    permissions: '0644'
     content: |
-      net.ipv6.conf.eth0.disable_ipv6 = 1
+      net.ipv6.conf.all.disable_ipv6 = 1
+      net.ipv6.conf.default.disable_ipv6 = 1
+      net.ipv6.conf.lo.disable_ipv6 = 1
+
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      X11Forwarding no
+      MaxAuthTries 3
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
 
   - path: /etc/fail2ban/jail.local
     owner: root:root
     permissions: '0644'
     content: |
+      [DEFAULT]
+      banaction = nftables-multiport
+      backend = systemd
+      bantime = 1h
+      findtime = 10m
+      maxretry = 5
+
       [sshd]
       enabled = true
       port = ssh
-      backend = systemd
+      logpath = %(sshd_log)s
+
+bootcmd:
+  - sysctl --system
 
 runcmd:
-  - systemctl restart systemd-sysctl
-  - apt-get update
-  - apt-get install -y qemu-guest-agent net-tools
-  - systemctl enable qemu-guest-agent
-  - systemctl start qemu-guest-agent
-  - apt-get install -y fail2ban curl gnupg2 apt-transport-https build-essential libpam-dev
   - sshd -t
   - systemctl restart ssh
-  - systemctl enable fail2ban
-  - systemctl restart fail2ban
+  - systemctl enable --now qemu-guest-agent
+  - systemctl enable --now fail2ban
   - fail2ban-client ping
-  - reboot
+
+final_message: "cloud-init hardening completed successfully."
 EOF
 
   echo "Created ${SNIPPET_PATH}"
