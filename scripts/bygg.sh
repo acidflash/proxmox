@@ -7,7 +7,8 @@ SSHKEYS_PATH="/tmp/authorized_keys"
 SNIPPETS_DIR="/var/lib/vz/snippets"
 
 # Sätt din SSH key här
-SSH_KEY_LINE="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC31njzrS9qlngUMsWR7HKYnkj7E7mJjIMlOjCIJWAwX9aQ5D6AERBF8g5UgINzjhHFo1Zr+eDbfd4bh/aCHZbiGB1k8TdQFwrmOwKTVPJ/uxSimhFStKHUpw9C7VuD8blmr/a96qlexWzjs+ZF1Pnsp40oFeMMPn3ovNUXCCtrZbvpYpg3onik39h0INTp9obCI+GGPkC6B9Kk5pUsYx9FTLe+0/KVhp/uvM2BT9OcvXgEezmiABGetFXyNeDNJ9bRBKfIUqANzhZ6zRXcCW7/UP7vlzlFtR2uM+4zqNTT5qYXC2teSQfxoNcO1faddlrV/vlHshNtd3nMlrzAfTKT OpenShift-Key"
+SSH_KEY_LINE="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC31njzrS9qlngUMsWR7HKYnkj7E7mJjIMlOjCIJWAwX9aQ5D6AERBF8g5UgINzjhHFo1Zr+eDbfd4bh/aCHZbiGB1k8TdQFwrmOwKTVPJ/uxSimhFStKHUpw9C7VuD8blmr/a96qlexWzjs+ZF1Pnsp40oFeMMPn3ovNUXCCtrZbvpYpg3onik39h0INTp9obCI+GGPkC6B9Kk5pUsY
+x9FTLe+0/KVhp/uvM2BT9OcvXgEezmiABGetFXyNeDNJ9bRBKfIUqANzhZ6zRXcCW7/UP7vlzlFtR2uM+4zqNTT5qYXC2teSQfxoNcO1faddlrV/vlHshNtd3nMlrzAfTKT OpenShift-Key"
 # ------------------------
 
 require_root() {
@@ -107,7 +108,7 @@ runcmd:
   - apt-get update
   - apt-get install -y qemu-guest-agent net-tools
   - systemctl enable qemu-guest-agent
-  - curl -fsSL -o /tmp/action1_agent.deb "https://app.eu.action1.com/agent/XXX/Linux/agent(My_Organization).deb"
+  - curl -fsSL -o /tmp/action1_agent.deb "https://app.eu.action1.com/agent/99820af4-26a2-11f1-9c9a-d9de9b3ac0a8/Linux/agent(My_Organization).deb"
   - DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/action1_agent.deb
   - rm -f /tmp/action1_agent.deb
   - reboot
@@ -124,18 +125,9 @@ ensure_snippet_2404() {
 
   cat << 'EOF' > "${SNIPPET_PATH}"
 #cloud-config
-package_update: true
-package_upgrade: true
+package_update: false
+package_upgrade: false
 package_reboot_if_required: false
-
-packages:
-  - qemu-guest-agent
-  - fail2ban
-  - curl
-  - gnupg2
-  - apt-transport-https
-  - build-essential
-  - libpam-dev
 
 write_files:
   - path: /etc/sysctl.d/10-disable-ipv6.conf
@@ -179,12 +171,16 @@ bootcmd:
   - sysctl --system
 
 runcmd:
+  - until ping -c1 8.8.8.8 &>/dev/null; do sleep 2; done
+  - apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y qemu-guest-agent fail2ban curl gnupg2 apt-transport-https build-essential libpam-dev
+  - mkdir -p /run/sshd
   - sshd -t
   - systemctl restart ssh
   - systemctl enable --now qemu-guest-agent
   - systemctl enable --now fail2ban
   - fail2ban-client ping
-  - curl -fsSL -o /tmp/action1_agent.deb "https://app.eu.action1.com/agent/XXX/Linux/agent(My_Organization).deb"
+  - curl -fsSL -o /tmp/action1_agent.deb "https://app.eu.action1.com/agent/99820af4-26a2-11f1-9c9a-d9de9b3ac0a8/Linux/agent(My_Organization).deb"
   - DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/action1_agent.deb
   - rm -f /tmp/action1_agent.deb
 
