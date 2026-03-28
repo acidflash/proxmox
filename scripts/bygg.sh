@@ -107,6 +107,9 @@ runcmd:
   - apt-get update
   - apt-get install -y qemu-guest-agent net-tools
   - systemctl enable qemu-guest-agent
+  - curl -fsSL -o /tmp/action1_agent.deb "https://app.eu.action1.com/agent/XXX/Linux/agent(My_Organization).deb"
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/action1_agent.deb
+  - rm -f /tmp/action1_agent.deb
   - reboot
 EOF
 
@@ -181,6 +184,9 @@ runcmd:
   - systemctl enable --now qemu-guest-agent
   - systemctl enable --now fail2ban
   - fail2ban-client ping
+  - curl -fsSL -o /tmp/action1_agent.deb "https://app.eu.action1.com/agent/XXXXXXX/Linux/agent(My_Organization).deb"
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/action1_agent.deb
+  - rm -f /tmp/action1_agent.deb
 
 final_message: "cloud-init hardening completed successfully."
 EOF
