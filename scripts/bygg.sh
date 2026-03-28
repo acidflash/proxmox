@@ -184,7 +184,7 @@ runcmd:
   - systemctl enable --now qemu-guest-agent
   - systemctl enable --now fail2ban
   - fail2ban-client ping
-  - curl -fsSL -o /tmp/action1_agent.deb "https://app.eu.action1.com/agent/XXXXXXX/Linux/agent(My_Organization).deb"
+  - curl -fsSL -o /tmp/action1_agent.deb "https://app.eu.action1.com/agent/XXX/Linux/agent(My_Organization).deb"
   - DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/action1_agent.deb
   - rm -f /tmp/action1_agent.deb
 
